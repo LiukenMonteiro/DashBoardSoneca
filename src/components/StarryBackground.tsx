@@ -32,22 +32,22 @@ export function StarryBackground() {
     window.addEventListener("resize", resize);
 
     // Generate stars
-    const stars: Star[] = Array.from({ length: 180 }, () => ({
+    const stars: Star[] = Array.from({ length: 160 }, () => ({
       x: Math.random(),
       y: Math.random(),
-      r: Math.random() * 1.4 + 0.3,
-      alpha: Math.random() * 0.5 + 0.2,
-      speed: Math.random() * 0.6 + 0.2,
+      r: Math.random() * 1.1 + 0.2,
+      alpha: Math.random() * 0.3 + 0.12,
+      speed: Math.random() * 0.5 + 0.15,
       phase: Math.random() * Math.PI * 2,
     }));
 
     // A few bigger/brighter stars
-    const brightStars: Star[] = Array.from({ length: 20 }, () => ({
+    const brightStars: Star[] = Array.from({ length: 15 }, () => ({
       x: Math.random(),
       y: Math.random(),
-      r: Math.random() * 1.8 + 1.2,
-      alpha: Math.random() * 0.4 + 0.5,
-      speed: Math.random() * 0.3 + 0.1,
+      r: Math.random() * 1.4 + 0.9,
+      alpha: Math.random() * 0.3 + 0.35,
+      speed: Math.random() * 0.25 + 0.08,
       phase: Math.random() * Math.PI * 2,
     }));
 
@@ -70,7 +70,7 @@ export function StarryBackground() {
         canvas.width * 0.8, canvas.height * 0.1, 0,
         canvas.width * 0.8, canvas.height * 0.1, canvas.width * 0.35
       );
-      nebula.addColorStop(0, "rgba(30,50,120,0.12)");
+      nebula.addColorStop(0, "rgba(30,50,120,0.07)");
       nebula.addColorStop(1, "rgba(0,0,0,0)");
       ctx.fillStyle = nebula;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -80,7 +80,7 @@ export function StarryBackground() {
         canvas.width * 0.15, canvas.height * 0.85, 0,
         canvas.width * 0.15, canvas.height * 0.85, canvas.width * 0.3
       );
-      nebula2.addColorStop(0, "rgba(60,20,80,0.08)");
+      nebula2.addColorStop(0, "rgba(60,20,80,0.05)");
       nebula2.addColorStop(1, "rgba(0,0,0,0)");
       ctx.fillStyle = nebula2;
       ctx.fillRect(0, 0, canvas.width, canvas.height);

@@ -41,7 +41,7 @@ export function SalaryCard({
   return (
     <div
       className="rounded-2xl p-4 flex flex-col gap-3"
-      style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+      style={{ background: "rgba(8,8,20,0.88)", border: "1px solid rgba(255,255,255,0.10)", backdropFilter: "blur(16px)" }}
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">

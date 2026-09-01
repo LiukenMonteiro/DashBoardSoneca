@@ -130,7 +130,7 @@ export default function Home() {
         {showAlert && (
           <div
             className="rounded-2xl p-4 mb-4 flex items-start gap-3"
-            style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.3)" }}
+            style={{ background: "rgba(30,18,0,0.92)", border: "1px solid rgba(245,158,11,0.35)", backdropFilter: "blur(16px)" }}
           >
             <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background: "rgba(245,158,11,0.15)" }}>
               <Bell size={15} className="text-amber-400" />
@@ -153,7 +153,7 @@ export default function Home() {
         {/* Total salary banner */}
         <div
           className="rounded-2xl p-5 mb-4 relative overflow-hidden"
-          style={{ background: "rgba(15,31,63,0.8)", border: "1px solid rgba(59,130,246,0.3)", backdropFilter: "blur(12px)" }}
+          style={{ background: "rgba(8,18,42,0.92)", border: "1px solid rgba(59,130,246,0.35)", backdropFilter: "blur(20px)" }}
         >
           <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full opacity-10" style={{ background: "#3b82f6" }} />
           <p className="text-xs text-blue-300 font-medium mb-1">Renda Total do Casal</p>
@@ -174,7 +174,7 @@ export default function Home() {
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div
             className="rounded-2xl p-4"
-            style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", backdropFilter: "blur(8px)" }}
+            style={{ background: "rgba(30,8,8,0.90)", border: "1px solid rgba(239,68,68,0.25)", backdropFilter: "blur(16px)" }}
           >
             <div className="flex items-center gap-1.5 mb-2">
               <TrendingDown size={14} className="text-red-400" />
@@ -187,9 +187,9 @@ export default function Home() {
           <div
             className="rounded-2xl p-4"
             style={{
-              background: balancePositive ? "rgba(34,197,94,0.08)" : "rgba(239,68,68,0.08)",
-              border: `1px solid ${balancePositive ? "rgba(34,197,94,0.2)" : "rgba(239,68,68,0.2)"}`,
-              backdropFilter: "blur(8px)",
+              background: balancePositive ? "rgba(8,28,14,0.90)" : "rgba(30,8,8,0.90)",
+              border: `1px solid ${balancePositive ? "rgba(34,197,94,0.3)" : "rgba(239,68,68,0.3)"}`,
+              backdropFilter: "blur(16px)",
             }}
           >
             <div className="flex items-center gap-1.5 mb-2">
@@ -236,7 +236,7 @@ export default function Home() {
         {/* Charts */}
         <div
           className="rounded-2xl p-4 mb-4"
-          style={{ background: "rgba(10,10,20,0.6)", border: "1px solid rgba(255,255,255,0.07)", backdropFilter: "blur(12px)" }}
+          style={{ background: "rgba(8,8,20,0.90)", border: "1px solid rgba(255,255,255,0.09)", backdropFilter: "blur(18px)" }}
         >
           <div className="flex items-center justify-between mb-4">
             <p className="text-sm font-semibold text-white">Análise de Gastos</p>
@@ -287,7 +287,7 @@ export default function Home() {
         {/* Expense list */}
         <div
           className="rounded-2xl p-4"
-          style={{ background: "rgba(10,10,20,0.6)", border: "1px solid rgba(255,255,255,0.07)", backdropFilter: "blur(12px)" }}
+          style={{ background: "rgba(8,8,20,0.90)", border: "1px solid rgba(255,255,255,0.09)", backdropFilter: "blur(18px)" }}
         >
           <div className="flex items-center justify-between mb-4">
             <p className="text-sm font-semibold text-white">Lançamentos</p>

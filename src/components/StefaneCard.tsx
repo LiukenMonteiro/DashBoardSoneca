@@ -36,7 +36,7 @@ function QuinzenaField({ label, fixed, variable, color, onSaveFixed, onSaveVaria
   return (
     <div
       className="rounded-xl p-3 flex flex-col gap-2"
-      style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}
+      style={{ background: "rgba(12,12,24,0.82)", border: "1px solid rgba(255,255,255,0.09)" }}
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5">
@@ -136,7 +136,7 @@ export function StefaneCard({
   return (
     <div
       className="rounded-2xl p-4 flex flex-col gap-3"
-      style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+      style={{ background: "rgba(8,8,20,0.88)", border: "1px solid rgba(255,255,255,0.10)", backdropFilter: "blur(16px)" }}
     >
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -181,7 +181,7 @@ export function StefaneCard({
       {/* Resumo */}
       <div
         className="flex items-center justify-between rounded-xl px-3 py-2"
-        style={{ background: "rgba(34,197,94,0.06)" }}
+        style={{ background: "rgba(10,30,15,0.85)" }}
       >
         <div className="flex items-center gap-3">
           <div className="text-center">
