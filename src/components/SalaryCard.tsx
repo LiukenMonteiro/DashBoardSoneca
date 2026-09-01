@@ -8,17 +8,26 @@ interface SalaryCardProps {
   value: number;
   color: string;
   onSave: (value: number) => void;
+  quinzenal?: boolean;
+  onToggleQuinzenal?: (v: boolean) => void;
+  mensal?: number; // valor mensal calculado (apenas quando quinzenal)
 }
 
-export function SalaryCard({ name, value, color, onSave }: SalaryCardProps) {
+export function SalaryCard({
+  name,
+  value,
+  color,
+  onSave,
+  quinzenal,
+  onToggleQuinzenal,
+  mensal,
+}: SalaryCardProps) {
   const [editing, setEditing] = useState(false);
   const [input, setInput] = useState(value.toString());
 
   function handleSave() {
     const parsed = parseFloat(input.replace(",", "."));
-    if (!isNaN(parsed) && parsed >= 0) {
-      onSave(parsed);
-    }
+    if (!isNaN(parsed) && parsed >= 0) onSave(parsed);
     setEditing(false);
   }
 
@@ -26,6 +35,8 @@ export function SalaryCard({ name, value, color, onSave }: SalaryCardProps) {
     setInput(value > 0 ? value.toString() : "");
     setEditing(true);
   }
+
+  const displayValue = value;
 
   return (
     <div
@@ -51,17 +62,7 @@ export function SalaryCard({ name, value, color, onSave }: SalaryCardProps) {
               : { background: "rgba(255,255,255,0.06)", color: "#9ca3af" }
           }
         >
-          {editing ? (
-            <>
-              <Save size={12} />
-              Salvar
-            </>
-          ) : (
-            <>
-              <Edit2 size={12} />
-              Editar
-            </>
-          )}
+          {editing ? <><Save size={12} />Salvar</> : <><Edit2 size={12} />Editar</>}
         </button>
       </div>
 
@@ -83,8 +84,35 @@ export function SalaryCard({ name, value, color, onSave }: SalaryCardProps) {
         <div className="flex items-baseline gap-1">
           <span className="text-gray-400 text-sm">R$</span>
           <span className="text-2xl font-bold text-white">
-            {value.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            {displayValue.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </span>
+          {quinzenal && (
+            <span className="text-xs text-gray-500 ml-1">/ quinzena</span>
+          )}
+        </div>
+      )}
+
+      {/* Toggle quinzenal (apenas para Stefane) */}
+      {onToggleQuinzenal !== undefined && (
+        <div className="flex items-center justify-between pt-1 border-t" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+          <div className="flex flex-col">
+            <span className="text-xs text-gray-400">Recebe por quinzena</span>
+            {quinzenal && mensal !== undefined && (
+              <span className="text-xs" style={{ color }}>
+                Mensal: R$ {mensal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+              </span>
+            )}
+          </div>
+          <button
+            onClick={() => onToggleQuinzenal(!quinzenal)}
+            className="relative w-11 h-6 rounded-full transition-all flex-shrink-0"
+            style={{ background: quinzenal ? color : "rgba(255,255,255,0.1)" }}
+          >
+            <span
+              className="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform"
+              style={{ transform: quinzenal ? "translateX(20px)" : "translateX(0)" }}
+            />
+          </button>
         </div>
       )}
     </div>

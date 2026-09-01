@@ -46,12 +46,14 @@ export interface Expense {
 export interface AppData {
   carlosSalary: number;
   stefaneSalary: number;
+  stefaneQuinzenal: boolean; // true = valor inserido é por quinzena (×2 no mensal)
   expenses: Expense[];
 }
 
 const DEFAULT_DATA: AppData = {
   carlosSalary: 0,
   stefaneSalary: 0,
+  stefaneQuinzenal: false,
   expenses: [],
 };
 
@@ -62,7 +64,8 @@ function loadData(): AppData {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return DEFAULT_DATA;
-    return JSON.parse(raw) as AppData;
+    const parsed = JSON.parse(raw) as AppData;
+    return { ...DEFAULT_DATA, ...parsed };
   } catch {
     return DEFAULT_DATA;
   }
@@ -98,6 +101,10 @@ export function useAppStore() {
     updateData((d) => ({ ...d, stefaneSalary: value }));
   }
 
+  function setStefaneQuinzenal(value: boolean) {
+    updateData((d) => ({ ...d, stefaneQuinzenal: value }));
+  }
+
   function addExpense(expense: Omit<Expense, "id">) {
     const newExpense: Expense = {
       ...expense,
@@ -113,7 +120,9 @@ export function useAppStore() {
     }));
   }
 
-  const totalSalary = data.carlosSalary + data.stefaneSalary;
+  // Salário mensal real da Stefane (quinzenal × 2 se ativado)
+  const stefaneMensal = data.stefaneQuinzenal ? data.stefaneSalary * 2 : data.stefaneSalary;
+  const totalSalary = data.carlosSalary + stefaneMensal;
   const totalExpenses = data.expenses.reduce((sum, e) => sum + e.amount, 0);
   const balance = totalSalary - totalExpenses;
 
@@ -122,10 +131,12 @@ export function useAppStore() {
     loaded,
     setCarlosSalary,
     setStefaneSalary,
-    addExpense,
-    removeExpense,
+    setStefaneQuinzenal,
+    stefaneMensal,
     totalSalary,
     totalExpenses,
     balance,
+    addExpense,
+    removeExpense,
   };
 }
