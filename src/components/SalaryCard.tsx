@@ -27,47 +27,26 @@ export function SalaryCard({ name, value, color, onSave }: SalaryCardProps) {
 
   return (
     <div
-      className="rounded-2xl px-4 py-3 flex items-center justify-between gap-3"
+      className="rounded-2xl px-4 py-3 flex flex-col gap-2"
       style={{ background: "rgba(8,8,20,0.88)", border: "1px solid rgba(255,255,255,0.10)", backdropFilter: "blur(16px)" }}
     >
-      {/* Esquerda: ícone + nome */}
-      <div className="flex items-center gap-2 min-w-0">
-        <div
-          className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
-          style={{ background: `${color}22` }}
-        >
-          <DollarSign size={16} style={{ color }} />
-        </div>
-        <div className="min-w-0">
-          <p className="text-sm font-medium text-gray-300 truncate">{name}</p>
-          <p className="text-xs text-gray-600">Salário mensal</p>
-        </div>
-      </div>
-
-      {/* Direita: valor + botão */}
-      <div className="flex items-center gap-2 flex-shrink-0">
-        {editing ? (
-          <input
-            type="number"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSave()}
-            autoFocus
-            placeholder="0,00"
-            className="w-28 bg-transparent text-base font-bold outline-none border-b text-right text-white"
-            style={{ borderColor: color }}
-          />
-        ) : (
-          <div className="text-right">
-            <p className="text-xs text-gray-500">Mensal</p>
-            <p className="text-base font-bold text-white">
-              R$ {value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-            </p>
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div
+            className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+            style={{ background: `${color}22` }}
+          >
+            <DollarSign size={16} style={{ color }} />
           </div>
-        )}
+          <div>
+            <p className="text-sm font-medium text-gray-300">{name}</p>
+            <p className="text-xs text-gray-600">Salário mensal</p>
+          </div>
+        </div>
         <button
           onClick={editing ? handleSave : handleEdit}
-          className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-lg transition-all active:scale-95 flex-shrink-0"
+          className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-lg transition-all active:scale-95"
           style={
             editing
               ? { background: color, color: "#000", fontWeight: 600 }
@@ -77,6 +56,30 @@ export function SalaryCard({ name, value, color, onSave }: SalaryCardProps) {
           {editing ? <><Save size={11} />Ok</> : <><Edit2 size={11} />Editar</>}
         </button>
       </div>
+
+      {/* Valor / Input */}
+      {editing ? (
+        <div className="flex flex-col gap-1">
+          <span className="text-xs text-gray-500">Valor (R$)</span>
+          <input
+            type="number"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSave()}
+            autoFocus
+            placeholder="0,00"
+            className="w-full bg-transparent text-base font-bold outline-none border-b pb-0.5 text-white"
+            style={{ borderColor: color }}
+          />
+        </div>
+      ) : (
+        <div className="flex items-baseline gap-1">
+          <span className="text-xs text-gray-500">R$</span>
+          <span className="text-base font-bold text-white">
+            {value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+          </span>
+        </div>
+      )}
     </div>
   );
 }
