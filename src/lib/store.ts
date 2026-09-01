@@ -46,26 +46,34 @@ export interface Expense {
 export interface AppData {
   carlosSalary: number;
   stefaneSalary: number;
-  stefaneQuinzenal: boolean; // true = valor inserido é por quinzena (×2 no mensal)
+  stefaneQuinzenal: boolean;
   expenses: Expense[];
+  createdAt: string; // ISO date — quando os dados foram criados pela primeira vez
 }
 
 const DEFAULT_DATA: AppData = {
   carlosSalary: 0,
-  stefaneSalary: 0,
-  stefaneQuinzenal: false,
+  // Stefane: R$2.400 por quinzena, variável — pré-configurado
+  stefaneSalary: 2400,
+  stefaneQuinzenal: true,
   expenses: [],
+  createdAt: new Date().toISOString(),
 };
 
 const STORAGE_KEY = "sonecagastos_data";
+const SIX_MONTHS_MS = 6 * 30 * 24 * 60 * 60 * 1000;
 
 function loadData(): AppData {
   if (typeof window === "undefined") return DEFAULT_DATA;
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return DEFAULT_DATA;
-    const parsed = JSON.parse(raw) as AppData;
-    return { ...DEFAULT_DATA, ...parsed };
+    const parsed = JSON.parse(raw) as Partial<AppData>;
+    return {
+      ...DEFAULT_DATA,
+      ...parsed,
+      createdAt: parsed.createdAt ?? new Date().toISOString(),
+    };
   } catch {
     return DEFAULT_DATA;
   }
@@ -74,6 +82,16 @@ function loadData(): AppData {
 function saveData(data: AppData) {
   if (typeof window === "undefined") return;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+export function getLastSixMonths(): string[] {
+  const months: string[] = [];
+  const now = new Date();
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
+  }
+  return months;
 }
 
 export function useAppStore() {
@@ -120,11 +138,14 @@ export function useAppStore() {
     }));
   }
 
-  // Salário mensal real da Stefane (quinzenal × 2 se ativado)
   const stefaneMensal = data.stefaneQuinzenal ? data.stefaneSalary * 2 : data.stefaneSalary;
   const totalSalary = data.carlosSalary + stefaneMensal;
   const totalExpenses = data.expenses.reduce((sum, e) => sum + e.amount, 0);
   const balance = totalSalary - totalExpenses;
+
+  // Alerta: dados com 6+ meses de idade
+  const sixMonthsAlert =
+    loaded && Date.now() - new Date(data.createdAt).getTime() >= SIX_MONTHS_MS;
 
   return {
     data,
@@ -136,6 +157,7 @@ export function useAppStore() {
     totalSalary,
     totalExpenses,
     balance,
+    sixMonthsAlert,
     addExpense,
     removeExpense,
   };

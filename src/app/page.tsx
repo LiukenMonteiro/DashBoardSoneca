@@ -1,15 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, TrendingDown, TrendingUp, Wallet, PieChart, BarChart2, Download, LogOut } from "lucide-react";
+import { Plus, TrendingDown, TrendingUp, Wallet, PieChart, BarChart2, Download, LogOut, Bell } from "lucide-react";
 import { useAppStore, CATEGORY_COLORS, Category } from "@/lib/store";
 import { isAuthenticated, logout } from "@/lib/auth";
 import { SalaryCard } from "@/components/SalaryCard";
 import { LoginScreen } from "@/components/LoginScreen";
 import { AddExpenseModal } from "@/components/AddExpenseModal";
+import { ExportModal } from "@/components/ExportModal";
 import { CategoryPieChart, MonthlyBarChart } from "@/components/Charts";
 import { ExpenseList } from "@/components/ExpenseList";
-import { exportMonthPdf } from "@/lib/exportPdf";
 
 function fmt(value: number) {
   return value.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -20,32 +20,23 @@ export default function Home() {
   const [authed, setAuthed] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
   const [activeChart, setActiveChart] = useState<"pie" | "bar">("pie");
-  const [exporting, setExporting] = useState(false);
+  const [alertDismissed, setAlertDismissed] = useState(false);
 
   useEffect(() => {
     setAuthed(isAuthenticated());
     setAuthChecked(true);
   }, []);
 
-  const currentMonth = new Date().toISOString().slice(0, 7);
-
-  async function handleExportPdf() {
-    setExporting(true);
-    try {
-      await exportMonthPdf(store.data, currentMonth);
-    } finally {
-      setExporting(false);
-    }
-  }
-
   function handleLogout() {
     logout();
     setAuthed(false);
   }
 
-  const { data, loaded, totalSalary, totalExpenses, balance, stefaneMensal } = store;
+  const { data, loaded, totalSalary, totalExpenses, balance, stefaneMensal, sixMonthsAlert } = store;
   const balancePositive = balance >= 0;
+  const showAlert = sixMonthsAlert && !alertDismissed;
 
   const categoryTotals = Object.entries(
     data.expenses.reduce<Record<string, number>>((acc, e) => {
@@ -61,10 +52,7 @@ export default function Home() {
     return (
       <div className="min-h-dvh flex items-center justify-center" style={{ background: "#0a0a0f" }}>
         <div className="flex flex-col items-center gap-3">
-          <div
-            className="w-12 h-12 rounded-2xl flex items-center justify-center"
-            style={{ background: "rgba(59,130,246,0.2)" }}
-          >
+          <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: "rgba(59,130,246,0.2)" }}>
             <Wallet size={24} className="text-blue-400" />
           </div>
           <p className="text-gray-500 text-sm">Carregando...</p>
@@ -103,14 +91,13 @@ export default function Home() {
               {new Date().toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}
             </div>
             <button
-              onClick={handleExportPdf}
-              disabled={exporting}
-              title="Baixar PDF do mês"
-              className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium transition-all active:scale-95 disabled:opacity-50"
+              onClick={() => setExportOpen(true)}
+              title="Baixar extrato"
+              className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium transition-all active:scale-95"
               style={{ background: "rgba(239,68,68,0.12)", color: "#f87171", border: "1px solid rgba(239,68,68,0.25)" }}
             >
               <Download size={13} />
-              {exporting ? "..." : "PDF"}
+              PDF
             </button>
             <button
               onClick={handleLogout}
@@ -123,13 +110,42 @@ export default function Home() {
           </div>
         </div>
 
+        {/* Alerta 6 meses */}
+        {showAlert && (
+          <div
+            className="rounded-2xl p-4 mb-4 flex items-start gap-3"
+            style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.3)" }}
+          >
+            <div
+              className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
+              style={{ background: "rgba(245,158,11,0.15)" }}
+            >
+              <Bell size={15} className="text-amber-400" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-amber-300">Seus dados têm 6 meses!</p>
+              <p className="text-xs text-amber-500 mt-0.5">Recomendamos baixar o extrato completo para guardar o histórico.</p>
+              <button
+                onClick={() => { setExportOpen(true); setAlertDismissed(true); }}
+                className="mt-2 text-xs font-semibold px-3 py-1.5 rounded-lg transition-all active:scale-95"
+                style={{ background: "rgba(245,158,11,0.2)", color: "#fbbf24" }}
+              >
+                Baixar extrato agora
+              </button>
+            </div>
+            <button
+              onClick={() => setAlertDismissed(true)}
+              className="text-amber-600 text-lg leading-none flex-shrink-0"
+            >
+              ×
+            </button>
+          </div>
+        )}
+
         {/* Total salary banner */}
         <div
           className="rounded-2xl p-5 mb-4 relative overflow-hidden"
-          style={{
-            background: "linear-gradient(135deg, #1e3a5f 0%, #0f1f3d 100%)",
-            border: "1px solid rgba(59,130,246,0.3)",
-          }}
+          style={{ background: "linear-gradient(135deg, #1e3a5f 0%, #0f1f3d 100%)", border: "1px solid rgba(59,130,246,0.3)" }}
         >
           <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full opacity-10" style={{ background: "#3b82f6" }} />
           <p className="text-xs text-blue-300 font-medium mb-1">Renda Total do Casal</p>
@@ -241,11 +257,7 @@ export default function Home() {
                     const color = CATEGORY_COLORS[name as Category] || "#6b7280";
                     const pct = totalExpenses > 0 ? ((value / totalExpenses) * 100).toFixed(0) : 0;
                     return (
-                      <div
-                        key={name}
-                        className="flex items-center gap-2 rounded-xl px-3 py-2"
-                        style={{ background: `${color}11` }}
-                      >
+                      <div key={name} className="flex items-center gap-2 rounded-xl px-3 py-2" style={{ background: `${color}11` }}>
                         <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: color }} />
                         <div className="min-w-0">
                           <p className="text-xs text-gray-400 truncate">{name}</p>
@@ -258,11 +270,7 @@ export default function Home() {
               )}
             </>
           ) : (
-            <MonthlyBarChart
-              expenses={data.expenses}
-              carlosSalary={data.carlosSalary}
-              stefaneSalary={stefaneMensal}
-            />
+            <MonthlyBarChart expenses={data.expenses} carlosSalary={data.carlosSalary} stefaneSalary={stefaneMensal} />
           )}
         </div>
 
@@ -297,11 +305,8 @@ export default function Home() {
         </button>
       </div>
 
-      <AddExpenseModal
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        onAdd={store.addExpense}
-      />
+      <AddExpenseModal open={modalOpen} onClose={() => setModalOpen(false)} onAdd={store.addExpense} />
+      <ExportModal open={exportOpen} onClose={() => setExportOpen(false)} data={data} stefaneMensal={stefaneMensal} />
     </div>
   );
 }
