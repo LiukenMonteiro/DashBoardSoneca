@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { getDb, ref, onValue, set } from "./firebase";
 
 export type Category =
   | "Alimentação"
@@ -37,7 +38,7 @@ export const CATEGORY_COLORS: Record<Category, string> = {
 export interface SavingsDeposit {
   id: string;
   amount: number;
-  month: string; // YYYY-MM
+  month: string;
 }
 
 export interface Expense {
@@ -51,11 +52,10 @@ export interface Expense {
 
 export interface AppData {
   carlosSalary: number;
-  // Stefane: vendedora com salário fixo + variável por quinzena
-  stefaneQ1Fixed: number;   // Fixo 1ª quinzena (padrão R$2.400)
-  stefaneQ1Variable: number; // Comissão/metas 1ª quinzena
-  stefaneQ2Fixed: number;   // Fixo 2ª quinzena (padrão R$2.400)
-  stefaneQ2Variable: number; // Comissão/metas 2ª quinzena
+  stefaneQ1Fixed: number;
+  stefaneQ1Variable: number;
+  stefaneQ2Fixed: number;
+  stefaneQ2Variable: number;
   expenses: Expense[];
   savingsDeposits: SavingsDeposit[];
   createdAt: string;
@@ -73,36 +73,36 @@ const DEFAULT_DATA: AppData = {
 };
 
 const STORAGE_KEY = "sonecagastos_data";
+const DB_PATH = "sonecagastos/data";
 const SIX_MONTHS_MS = 6 * 30 * 24 * 60 * 60 * 1000;
 
-function loadData(): AppData {
+function migrateData(raw: Partial<AppData> & { stefaneSalary?: number }): AppData {
+  const q1Fixed = raw.stefaneQ1Fixed ?? raw.stefaneSalary ?? 2400;
+  return {
+    ...DEFAULT_DATA,
+    ...raw,
+    stefaneQ1Fixed: q1Fixed,
+    stefaneQ1Variable: raw.stefaneQ1Variable ?? 0,
+    stefaneQ2Fixed: raw.stefaneQ2Fixed ?? q1Fixed,
+    stefaneQ2Variable: raw.stefaneQ2Variable ?? 0,
+    expenses: raw.expenses ?? [],
+    savingsDeposits: raw.savingsDeposits ?? [],
+    createdAt: raw.createdAt ?? new Date().toISOString(),
+  };
+}
+
+function loadLocal(): AppData {
   if (typeof window === "undefined") return DEFAULT_DATA;
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return DEFAULT_DATA;
-    const parsed = JSON.parse(raw) as Partial<AppData> & {
-      // migração de versão anterior
-      stefaneSalary?: number;
-      stefaneQuinzenal?: boolean;
-    };
-    // Migra dados antigos
-    const q1Fixed = parsed.stefaneQ1Fixed ?? parsed.stefaneSalary ?? 2400;
-    return {
-      ...DEFAULT_DATA,
-      ...parsed,
-      stefaneQ1Fixed: q1Fixed,
-      stefaneQ1Variable: parsed.stefaneQ1Variable ?? 0,
-      stefaneQ2Fixed: parsed.stefaneQ2Fixed ?? q1Fixed,
-      stefaneQ2Variable: parsed.stefaneQ2Variable ?? 0,
-      savingsDeposits: parsed.savingsDeposits ?? [],
-      createdAt: parsed.createdAt ?? new Date().toISOString(),
-    };
+    return migrateData(JSON.parse(raw));
   } catch {
     return DEFAULT_DATA;
   }
 }
 
-function saveData(data: AppData) {
+function saveLocal(data: AppData) {
   if (typeof window === "undefined") return;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
@@ -120,16 +120,46 @@ export function getLastSixMonths(): string[] {
 export function useAppStore() {
   const [data, setData] = useState<AppData>(DEFAULT_DATA);
   const [loaded, setLoaded] = useState(false);
+  // Ref to avoid writing back to Firebase data that came FROM Firebase
+  const remoteUpdate = useRef(false);
 
   useEffect(() => {
-    setData(loadData());
-    setLoaded(true);
+    const db = getDb();
+
+    if (!db) {
+      // Fallback: use localStorage only
+      setData(loadLocal());
+      setLoaded(true);
+      return;
+    }
+
+    const dataRef = ref(db, DB_PATH);
+    const unsub = onValue(dataRef, (snapshot) => {
+      const val = snapshot.val() as Partial<AppData> | null;
+      if (val) {
+        remoteUpdate.current = true;
+        setData(migrateData(val));
+      } else {
+        // Firebase empty — upload local data (first device to connect)
+        const local = loadLocal();
+        set(dataRef, local);
+        setData(local);
+      }
+      setLoaded(true);
+    });
+
+    return unsub;
   }, []);
 
   function updateData(updater: (prev: AppData) => AppData) {
     setData((prev) => {
       const next = updater(prev);
-      saveData(next);
+      const db = getDb();
+      if (db) {
+        set(ref(db, DB_PATH), next);
+      } else {
+        saveLocal(next);
+      }
       return next;
     });
   }
@@ -137,7 +167,6 @@ export function useAppStore() {
   function setCarlosSalary(value: number) {
     updateData((d) => ({ ...d, carlosSalary: value }));
   }
-
   function setStefaneQ1Fixed(value: number) {
     updateData((d) => ({ ...d, stefaneQ1Fixed: value }));
   }
@@ -160,10 +189,7 @@ export function useAppStore() {
   }
 
   function removeExpense(id: string) {
-    updateData((d) => ({
-      ...d,
-      expenses: d.expenses.filter((e) => e.id !== id),
-    }));
+    updateData((d) => ({ ...d, expenses: d.expenses.filter((e) => e.id !== id) }));
   }
 
   function setSavingsDeposit(month: string, amount: number) {

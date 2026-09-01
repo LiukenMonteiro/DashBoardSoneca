@@ -137,30 +137,33 @@ export function StefaneCard({
 
   return (
     <div
-      className="rounded-2xl p-4 flex flex-col gap-3"
+      className="rounded-2xl px-4 py-3 flex flex-col gap-3"
       style={{ background: "rgba(8,8,20,0.88)", border: "1px solid rgba(255,255,255,0.10)", backdropFilter: "blur(16px)" }}
     >
       {/* Header — sempre visível, clicável para expandir */}
       <button
         onClick={() => setExpanded((v) => !v)}
-        className="flex items-center justify-between w-full text-left"
+        className="flex items-center justify-between w-full text-left gap-3"
       >
-        <div className="flex items-center gap-2">
+        {/* Esquerda: ícone + nome */}
+        <div className="flex items-center gap-2 min-w-0">
           <div
             className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
             style={{ background: "rgba(34,197,94,0.15)" }}
           >
             <DollarSign size={16} style={{ color: "#22c55e" }} />
           </div>
-          <div>
-            <span className="text-sm font-medium text-gray-300">Stefane</span>
-            <p className="text-xs text-gray-600">Vendedora · fixo + comissão</p>
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-gray-300 truncate">Stefane</p>
+            <p className="text-xs text-gray-600">Fixo + comissão</p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+
+        {/* Direita: valor + chevron */}
+        <div className="flex items-center gap-2 flex-shrink-0">
           <div className="text-right">
-            <p className="text-xs text-gray-500">Mensal total</p>
-            <p className="text-lg font-bold text-green-400">
+            <p className="text-xs text-gray-500">Mensal</p>
+            <p className="text-base font-bold text-green-400">
               R$ {mensal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
             </p>
           </div>
