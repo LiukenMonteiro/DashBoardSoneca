@@ -34,6 +34,12 @@ export const CATEGORY_COLORS: Record<Category, string> = {
   Outros: "#6b7280",
 };
 
+export interface SavingsDeposit {
+  id: string;
+  amount: number;
+  month: string; // YYYY-MM
+}
+
 export interface Expense {
   id: string;
   description: string;
@@ -51,6 +57,7 @@ export interface AppData {
   stefaneQ2Fixed: number;   // Fixo 2ª quinzena (padrão R$2.400)
   stefaneQ2Variable: number; // Comissão/metas 2ª quinzena
   expenses: Expense[];
+  savingsDeposits: SavingsDeposit[];
   createdAt: string;
 }
 
@@ -61,6 +68,7 @@ const DEFAULT_DATA: AppData = {
   stefaneQ2Fixed: 2400,
   stefaneQ2Variable: 0,
   expenses: [],
+  savingsDeposits: [],
   createdAt: new Date().toISOString(),
 };
 
@@ -86,6 +94,7 @@ function loadData(): AppData {
       stefaneQ1Variable: parsed.stefaneQ1Variable ?? 0,
       stefaneQ2Fixed: parsed.stefaneQ2Fixed ?? q1Fixed,
       stefaneQ2Variable: parsed.stefaneQ2Variable ?? 0,
+      savingsDeposits: parsed.savingsDeposits ?? [],
       createdAt: parsed.createdAt ?? new Date().toISOString(),
     };
   } catch {
@@ -157,12 +166,37 @@ export function useAppStore() {
     }));
   }
 
+  function setSavingsDeposit(month: string, amount: number) {
+    updateData((d) => {
+      const exists = d.savingsDeposits.some((dep) => dep.month === month);
+      if (exists) {
+        return {
+          ...d,
+          savingsDeposits: d.savingsDeposits.map((dep) =>
+            dep.month === month ? { ...dep, amount } : dep
+          ),
+        };
+      }
+      return {
+        ...d,
+        savingsDeposits: [
+          ...d.savingsDeposits,
+          { id: Date.now().toString() + Math.random().toString(36).slice(2), amount, month },
+        ],
+      };
+    });
+  }
+
   const stefaneQ1Total = data.stefaneQ1Fixed + data.stefaneQ1Variable;
   const stefaneQ2Total = data.stefaneQ2Fixed + data.stefaneQ2Variable;
   const stefaneMensal = stefaneQ1Total + stefaneQ2Total;
   const totalSalary = data.carlosSalary + stefaneMensal;
   const totalExpenses = data.expenses.reduce((sum, e) => sum + e.amount, 0);
-  const balance = totalSalary - totalExpenses;
+  const savingsTotal = data.savingsDeposits.reduce((sum, d) => sum + d.amount, 0);
+  const now = new Date();
+  const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  const currentMonthSavings = data.savingsDeposits.find((d) => d.month === currentMonth)?.amount ?? 0;
+  const balance = totalSalary - totalExpenses - currentMonthSavings;
   const sixMonthsAlert = loaded && Date.now() - new Date(data.createdAt).getTime() >= SIX_MONTHS_MS;
 
   return {
@@ -178,9 +212,13 @@ export function useAppStore() {
     stefaneMensal,
     totalSalary,
     totalExpenses,
+    savingsTotal,
+    currentMonth,
+    currentMonthSavings,
     balance,
     sixMonthsAlert,
     addExpense,
     removeExpense,
+    setSavingsDeposit,
   };
 }

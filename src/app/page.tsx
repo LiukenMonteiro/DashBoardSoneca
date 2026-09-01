@@ -12,6 +12,7 @@ import { AddExpenseModal } from "@/components/AddExpenseModal";
 import { ExportModal } from "@/components/ExportModal";
 import { CategoryPieChart, MonthlyBarChart } from "@/components/Charts";
 import { ExpenseList } from "@/components/ExpenseList";
+import { CaixinhaCard } from "@/components/CaixinhaCard";
 
 function fmt(value: number) {
   return value.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -40,6 +41,7 @@ export default function Home() {
     data, loaded,
     totalSalary, totalExpenses, balance,
     stefaneMensal, stefaneQ1Total, stefaneQ2Total,
+    savingsTotal, currentMonth, currentMonthSavings,
     sixMonthsAlert,
   } = store;
 
@@ -203,7 +205,12 @@ export default function Home() {
             <p className="text-xl font-bold" style={{ color: balancePositive ? "#22c55e" : "#ef4444" }}>
               R$ {fmt(Math.abs(balance))}
             </p>
-            <p className="text-xs text-gray-500 mt-1">{balancePositive ? "disponível" : "negativo"}</p>
+            <p className="text-xs text-gray-500 mt-1">
+              {balancePositive ? "disponível" : "negativo"}
+              {currentMonthSavings > 0 && (
+                <span className="text-amber-600"> · R$ {fmt(currentMonthSavings)} na caixinha</span>
+              )}
+            </p>
           </div>
         </div>
 
@@ -231,6 +238,16 @@ export default function Home() {
               onSaveQ2Variable={store.setStefaneQ2Variable}
             />
           </div>
+        </div>
+
+        {/* Caixinha */}
+        <div className="mb-4">
+          <CaixinhaCard
+            deposits={data.savingsDeposits}
+            currentMonth={currentMonth}
+            savingsTotal={savingsTotal}
+            onSetDeposit={store.setSavingsDeposit}
+          />
         </div>
 
         {/* Charts */}
