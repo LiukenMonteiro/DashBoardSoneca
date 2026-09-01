@@ -63,9 +63,9 @@ export interface AppData {
 
 const DEFAULT_DATA: AppData = {
   carlosSalary: 0,
-  stefaneQ1Fixed: 2400,
+  stefaneQ1Fixed: 0,
   stefaneQ1Variable: 0,
-  stefaneQ2Fixed: 2400,
+  stefaneQ2Fixed: 0,
   stefaneQ2Variable: 0,
   expenses: [],
   savingsDeposits: [],
@@ -77,7 +77,7 @@ const DB_PATH = "sonecagastos/data";
 const SIX_MONTHS_MS = 6 * 30 * 24 * 60 * 60 * 1000;
 
 function migrateData(raw: Partial<AppData> & { stefaneSalary?: number }): AppData {
-  const q1Fixed = raw.stefaneQ1Fixed ?? raw.stefaneSalary ?? 2400;
+  const q1Fixed = raw.stefaneQ1Fixed ?? raw.stefaneSalary ?? 0;
   return {
     ...DEFAULT_DATA,
     ...raw,
