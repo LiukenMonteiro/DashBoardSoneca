@@ -31,8 +31,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
 
   return (
     <div
-      className="min-h-dvh flex flex-col items-center justify-center px-6"
-      style={{ background: "#0a0a0f" }}
+      className="relative z-10 min-h-dvh flex flex-col items-center justify-center px-6"
     >
       {/* Logo */}
       <div className="flex flex-col items-center gap-3 mb-10">
