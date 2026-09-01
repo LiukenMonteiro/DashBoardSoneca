@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { DollarSign, Save, Edit2, TrendingUp } from "lucide-react";
+import { DollarSign, Save, Edit2, TrendingUp, ChevronDown } from "lucide-react";
 
 interface QuinzenaFieldProps {
   label: string;
@@ -133,16 +133,21 @@ export function StefaneCard({
   q1Total, q2Total, mensal,
   onSaveQ1Fixed, onSaveQ1Variable, onSaveQ2Fixed, onSaveQ2Variable,
 }: StefaneCardProps) {
+  const [expanded, setExpanded] = useState(false);
+
   return (
     <div
       className="rounded-2xl p-4 flex flex-col gap-3"
       style={{ background: "rgba(8,8,20,0.88)", border: "1px solid rgba(255,255,255,0.10)", backdropFilter: "blur(16px)" }}
     >
-      {/* Header */}
-      <div className="flex items-center justify-between">
+      {/* Header — sempre visível, clicável para expandir */}
+      <button
+        onClick={() => setExpanded((v) => !v)}
+        className="flex items-center justify-between w-full text-left"
+      >
         <div className="flex items-center gap-2">
           <div
-            className="w-8 h-8 rounded-full flex items-center justify-center"
+            className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
             style={{ background: "rgba(34,197,94,0.15)" }}
           >
             <DollarSign size={16} style={{ color: "#22c55e" }} />
@@ -152,59 +157,71 @@ export function StefaneCard({
             <p className="text-xs text-gray-600">Vendedora · fixo + comissão</p>
           </div>
         </div>
-        <div className="text-right">
-          <p className="text-xs text-gray-500">Mensal total</p>
-          <p className="text-lg font-bold text-green-400">
-            R$ {mensal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-          </p>
-        </div>
-      </div>
-
-      {/* Quinzenas */}
-      <QuinzenaField
-        label="1ª Quinzena (dias 1–15)"
-        fixed={q1Fixed}
-        variable={q1Variable}
-        color="#22c55e"
-        onSaveFixed={onSaveQ1Fixed}
-        onSaveVariable={onSaveQ1Variable}
-      />
-      <QuinzenaField
-        label="2ª Quinzena (dias 16–31)"
-        fixed={q2Fixed}
-        variable={q2Variable}
-        color="#4ade80"
-        onSaveFixed={onSaveQ2Fixed}
-        onSaveVariable={onSaveQ2Variable}
-      />
-
-      {/* Resumo */}
-      <div
-        className="flex items-center justify-between rounded-xl px-3 py-2"
-        style={{ background: "rgba(10,30,15,0.85)" }}
-      >
         <div className="flex items-center gap-3">
-          <div className="text-center">
-            <p className="text-xs text-gray-500">1ª quinzena</p>
-            <p className="text-xs font-bold text-green-400">
-              R$ {q1Total.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+          <div className="text-right">
+            <p className="text-xs text-gray-500">Mensal total</p>
+            <p className="text-lg font-bold text-green-400">
+              R$ {mensal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
             </p>
           </div>
-          <span className="text-gray-600">+</span>
-          <div className="text-center">
-            <p className="text-xs text-gray-500">2ª quinzena</p>
-            <p className="text-xs font-bold text-green-300">
-              R$ {q2Total.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-            </p>
+          <ChevronDown
+            size={16}
+            className="text-gray-500 flex-shrink-0 transition-transform duration-200"
+            style={{ transform: expanded ? "rotate(180deg)" : "rotate(0deg)" }}
+          />
+        </div>
+      </button>
+
+      {/* Conteúdo retrátil */}
+      {expanded && (
+        <>
+          {/* Quinzenas */}
+          <QuinzenaField
+            label="1ª Quinzena (dias 1–15)"
+            fixed={q1Fixed}
+            variable={q1Variable}
+            color="#22c55e"
+            onSaveFixed={onSaveQ1Fixed}
+            onSaveVariable={onSaveQ1Variable}
+          />
+          <QuinzenaField
+            label="2ª Quinzena (dias 16–31)"
+            fixed={q2Fixed}
+            variable={q2Variable}
+            color="#4ade80"
+            onSaveFixed={onSaveQ2Fixed}
+            onSaveVariable={onSaveQ2Variable}
+          />
+
+          {/* Resumo */}
+          <div
+            className="flex items-center justify-between rounded-xl px-3 py-2"
+            style={{ background: "rgba(10,30,15,0.85)" }}
+          >
+            <div className="flex items-center gap-3">
+              <div className="text-center">
+                <p className="text-xs text-gray-500">1ª quinzena</p>
+                <p className="text-xs font-bold text-green-400">
+                  R$ {q1Total.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                </p>
+              </div>
+              <span className="text-gray-600">+</span>
+              <div className="text-center">
+                <p className="text-xs text-gray-500">2ª quinzena</p>
+                <p className="text-xs font-bold text-green-300">
+                  R$ {q2Total.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                </p>
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="text-xs text-gray-500">= Mensal</p>
+              <p className="text-sm font-bold text-green-400">
+                R$ {mensal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+              </p>
+            </div>
           </div>
-        </div>
-        <div className="text-right">
-          <p className="text-xs text-gray-500">= Mensal</p>
-          <p className="text-sm font-bold text-green-400">
-            R$ {mensal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-          </p>
-        </div>
-      </div>
+        </>
+      )}
     </div>
   );
 }
