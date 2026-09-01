@@ -45,17 +45,21 @@ export interface Expense {
 
 export interface AppData {
   carlosSalary: number;
-  stefaneSalary: number;
-  stefaneQuinzenal: boolean;
+  // Stefane: vendedora com salário fixo + variável por quinzena
+  stefaneQ1Fixed: number;   // Fixo 1ª quinzena (padrão R$2.400)
+  stefaneQ1Variable: number; // Comissão/metas 1ª quinzena
+  stefaneQ2Fixed: number;   // Fixo 2ª quinzena (padrão R$2.400)
+  stefaneQ2Variable: number; // Comissão/metas 2ª quinzena
   expenses: Expense[];
-  createdAt: string; // ISO date — quando os dados foram criados pela primeira vez
+  createdAt: string;
 }
 
 const DEFAULT_DATA: AppData = {
   carlosSalary: 0,
-  // Stefane: R$2.400 por quinzena, variável — pré-configurado
-  stefaneSalary: 2400,
-  stefaneQuinzenal: true,
+  stefaneQ1Fixed: 2400,
+  stefaneQ1Variable: 0,
+  stefaneQ2Fixed: 2400,
+  stefaneQ2Variable: 0,
   expenses: [],
   createdAt: new Date().toISOString(),
 };
@@ -68,10 +72,20 @@ function loadData(): AppData {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return DEFAULT_DATA;
-    const parsed = JSON.parse(raw) as Partial<AppData>;
+    const parsed = JSON.parse(raw) as Partial<AppData> & {
+      // migração de versão anterior
+      stefaneSalary?: number;
+      stefaneQuinzenal?: boolean;
+    };
+    // Migra dados antigos
+    const q1Fixed = parsed.stefaneQ1Fixed ?? parsed.stefaneSalary ?? 2400;
     return {
       ...DEFAULT_DATA,
       ...parsed,
+      stefaneQ1Fixed: q1Fixed,
+      stefaneQ1Variable: parsed.stefaneQ1Variable ?? 0,
+      stefaneQ2Fixed: parsed.stefaneQ2Fixed ?? q1Fixed,
+      stefaneQ2Variable: parsed.stefaneQ2Variable ?? 0,
       createdAt: parsed.createdAt ?? new Date().toISOString(),
     };
   } catch {
@@ -115,12 +129,17 @@ export function useAppStore() {
     updateData((d) => ({ ...d, carlosSalary: value }));
   }
 
-  function setStefaneSalary(value: number) {
-    updateData((d) => ({ ...d, stefaneSalary: value }));
+  function setStefaneQ1Fixed(value: number) {
+    updateData((d) => ({ ...d, stefaneQ1Fixed: value }));
   }
-
-  function setStefaneQuinzenal(value: boolean) {
-    updateData((d) => ({ ...d, stefaneQuinzenal: value }));
+  function setStefaneQ1Variable(value: number) {
+    updateData((d) => ({ ...d, stefaneQ1Variable: value }));
+  }
+  function setStefaneQ2Fixed(value: number) {
+    updateData((d) => ({ ...d, stefaneQ2Fixed: value }));
+  }
+  function setStefaneQ2Variable(value: number) {
+    updateData((d) => ({ ...d, stefaneQ2Variable: value }));
   }
 
   function addExpense(expense: Omit<Expense, "id">) {
@@ -138,21 +157,24 @@ export function useAppStore() {
     }));
   }
 
-  const stefaneMensal = data.stefaneQuinzenal ? data.stefaneSalary * 2 : data.stefaneSalary;
+  const stefaneQ1Total = data.stefaneQ1Fixed + data.stefaneQ1Variable;
+  const stefaneQ2Total = data.stefaneQ2Fixed + data.stefaneQ2Variable;
+  const stefaneMensal = stefaneQ1Total + stefaneQ2Total;
   const totalSalary = data.carlosSalary + stefaneMensal;
   const totalExpenses = data.expenses.reduce((sum, e) => sum + e.amount, 0);
   const balance = totalSalary - totalExpenses;
-
-  // Alerta: dados com 6+ meses de idade
-  const sixMonthsAlert =
-    loaded && Date.now() - new Date(data.createdAt).getTime() >= SIX_MONTHS_MS;
+  const sixMonthsAlert = loaded && Date.now() - new Date(data.createdAt).getTime() >= SIX_MONTHS_MS;
 
   return {
     data,
     loaded,
     setCarlosSalary,
-    setStefaneSalary,
-    setStefaneQuinzenal,
+    setStefaneQ1Fixed,
+    setStefaneQ1Variable,
+    setStefaneQ2Fixed,
+    setStefaneQ2Variable,
+    stefaneQ1Total,
+    stefaneQ2Total,
     stefaneMensal,
     totalSalary,
     totalExpenses,

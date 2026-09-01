@@ -90,7 +90,6 @@ function drawSalaryRow(
   pageW: number,
   carlosSalary: number,
   stefaneMensal: number,
-  stefaneQuinzenal: boolean,
   yStart: number
 ) {
   const half = (pageW - 28 - 4) / 2;
@@ -102,7 +101,7 @@ function drawSalaryRow(
   doc.setTextColor(156, 163, 175);
   doc.setFont("helvetica", "normal");
   doc.text("Carlos", 18, yStart + 6);
-  doc.text(`Stefane${stefaneQuinzenal ? " (quinzenal ×2)" : ""}`, 18 + half + 4, yStart + 6);
+  doc.text("Stefane (fixo + comissão)", 18 + half + 4, yStart + 6);
 
   doc.setFontSize(9);
   doc.setFont("helvetica", "bold");
@@ -119,7 +118,7 @@ function getAutoTableFinalY(doc: any): number {
 
 export async function exportMonthPdf(data: AppData, month: string) {
   const { jsPDF, autoTable } = await createDoc();
-  const stefaneMensal = data.stefaneQuinzenal ? data.stefaneSalary * 2 : data.stefaneSalary;
+  const stefaneMensal = (data.stefaneQ1Fixed + data.stefaneQ1Variable) + (data.stefaneQ2Fixed + data.stefaneQ2Variable);
   const totalSalary = data.carlosSalary + stefaneMensal;
   const expenses = data.expenses.filter((e) => e.date.startsWith(month));
   const totalExpenses = expenses.reduce((s, e) => s + e.amount, 0);
@@ -130,7 +129,7 @@ export async function exportMonthPdf(data: AppData, month: string) {
 
   drawHeader(doc, pageW, "SonecaGastos", `Relatório — ${monthLabel(month)}`);
   drawSummaryCards(doc, pageW, totalSalary, totalExpenses, balance, 44);
-  drawSalaryRow(doc, pageW, data.carlosSalary, stefaneMensal, data.stefaneQuinzenal, 70);
+  drawSalaryRow(doc, pageW, data.carlosSalary, stefaneMensal, 70);
 
   if (expenses.length === 0) {
     doc.setFontSize(11);
@@ -197,7 +196,7 @@ export async function exportSixMonthsPdf(data: AppData, months: string[], stefan
   drawSummaryCards(doc, pageW, totalSalaryPeriod, totalExpenses, balance, 44);
 
   // Linha de salários
-  drawSalaryRow(doc, pageW, data.carlosSalary, stefaneMensal, data.stefaneQuinzenal, 70);
+  drawSalaryRow(doc, pageW, data.carlosSalary, stefaneMensal, 70);
 
   let currentY = 90;
 

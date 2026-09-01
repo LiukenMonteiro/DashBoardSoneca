@@ -5,6 +5,8 @@ import { Plus, TrendingDown, TrendingUp, Wallet, PieChart, BarChart2, Download, 
 import { useAppStore, CATEGORY_COLORS, Category } from "@/lib/store";
 import { isAuthenticated, logout } from "@/lib/auth";
 import { SalaryCard } from "@/components/SalaryCard";
+import { StefaneCard } from "@/components/StefaneCard";
+import { StarryBackground } from "@/components/StarryBackground";
 import { LoginScreen } from "@/components/LoginScreen";
 import { AddExpenseModal } from "@/components/AddExpenseModal";
 import { ExportModal } from "@/components/ExportModal";
@@ -34,7 +36,13 @@ export default function Home() {
     setAuthed(false);
   }
 
-  const { data, loaded, totalSalary, totalExpenses, balance, stefaneMensal, sixMonthsAlert } = store;
+  const {
+    data, loaded,
+    totalSalary, totalExpenses, balance,
+    stefaneMensal, stefaneQ1Total, stefaneQ2Total,
+    sixMonthsAlert,
+  } = store;
+
   const balancePositive = balance >= 0;
   const showAlert = sixMonthsAlert && !alertDismissed;
 
@@ -50,8 +58,9 @@ export default function Home() {
 
   if (!authChecked || !loaded) {
     return (
-      <div className="min-h-dvh flex items-center justify-center" style={{ background: "#0a0a0f" }}>
-        <div className="flex flex-col items-center gap-3">
+      <div className="min-h-dvh flex items-center justify-center" style={{ background: "#05050f" }}>
+        <StarryBackground />
+        <div className="relative z-10 flex flex-col items-center gap-3">
           <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: "rgba(59,130,246,0.2)" }}>
             <Wallet size={24} className="text-blue-400" />
           </div>
@@ -62,12 +71,19 @@ export default function Home() {
   }
 
   if (!authed) {
-    return <LoginScreen onLogin={() => setAuthed(true)} />;
+    return (
+      <>
+        <StarryBackground />
+        <LoginScreen onLogin={() => setAuthed(true)} />
+      </>
+    );
   }
 
   return (
-    <div className="min-h-dvh" style={{ background: "#0a0a0f" }}>
-      <div className="max-w-md mx-auto px-4 pb-28 pt-6">
+    <div className="min-h-dvh" style={{ background: "transparent" }}>
+      <StarryBackground />
+
+      <div className="relative z-10 max-w-md mx-auto px-4 pb-28 pt-6">
 
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
@@ -116,10 +132,7 @@ export default function Home() {
             className="rounded-2xl p-4 mb-4 flex items-start gap-3"
             style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.3)" }}
           >
-            <div
-              className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
-              style={{ background: "rgba(245,158,11,0.15)" }}
-            >
+            <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background: "rgba(245,158,11,0.15)" }}>
               <Bell size={15} className="text-amber-400" />
             </div>
             <div className="flex-1 min-w-0">
@@ -133,19 +146,14 @@ export default function Home() {
                 Baixar extrato agora
               </button>
             </div>
-            <button
-              onClick={() => setAlertDismissed(true)}
-              className="text-amber-600 text-lg leading-none flex-shrink-0"
-            >
-              ×
-            </button>
+            <button onClick={() => setAlertDismissed(true)} className="text-amber-600 text-xl leading-none flex-shrink-0">×</button>
           </div>
         )}
 
         {/* Total salary banner */}
         <div
           className="rounded-2xl p-5 mb-4 relative overflow-hidden"
-          style={{ background: "linear-gradient(135deg, #1e3a5f 0%, #0f1f3d 100%)", border: "1px solid rgba(59,130,246,0.3)" }}
+          style={{ background: "rgba(15,31,63,0.8)", border: "1px solid rgba(59,130,246,0.3)", backdropFilter: "blur(12px)" }}
         >
           <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full opacity-10" style={{ background: "#3b82f6" }} />
           <p className="text-xs text-blue-300 font-medium mb-1">Renda Total do Casal</p>
@@ -157,10 +165,7 @@ export default function Home() {
             </div>
             <div className="flex items-center gap-1.5">
               <div className="w-2 h-2 rounded-full bg-green-400" />
-              <span className="text-xs text-blue-200">
-                Stefane: R$ {fmt(stefaneMensal)}
-                {data.stefaneQuinzenal && <span className="opacity-60"> /mês</span>}
-              </span>
+              <span className="text-xs text-blue-200">Stefane: R$ {fmt(stefaneMensal)}</span>
             </div>
           </div>
         </div>
@@ -169,7 +174,7 @@ export default function Home() {
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div
             className="rounded-2xl p-4"
-            style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)" }}
+            style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", backdropFilter: "blur(8px)" }}
           >
             <div className="flex items-center gap-1.5 mb-2">
               <TrendingDown size={14} className="text-red-400" />
@@ -184,6 +189,7 @@ export default function Home() {
             style={{
               background: balancePositive ? "rgba(34,197,94,0.08)" : "rgba(239,68,68,0.08)",
               border: `1px solid ${balancePositive ? "rgba(34,197,94,0.2)" : "rgba(239,68,68,0.2)"}`,
+              backdropFilter: "blur(8px)",
             }}
           >
             <div className="flex items-center gap-1.5 mb-2">
@@ -211,14 +217,18 @@ export default function Home() {
               color="#3b82f6"
               onSave={store.setCarlosSalary}
             />
-            <SalaryCard
-              name="Stefane"
-              value={data.stefaneSalary}
-              color="#22c55e"
-              onSave={store.setStefaneSalary}
-              quinzenal={data.stefaneQuinzenal}
-              onToggleQuinzenal={store.setStefaneQuinzenal}
+            <StefaneCard
+              q1Fixed={data.stefaneQ1Fixed}
+              q1Variable={data.stefaneQ1Variable}
+              q2Fixed={data.stefaneQ2Fixed}
+              q2Variable={data.stefaneQ2Variable}
+              q1Total={stefaneQ1Total}
+              q2Total={stefaneQ2Total}
               mensal={stefaneMensal}
+              onSaveQ1Fixed={store.setStefaneQ1Fixed}
+              onSaveQ1Variable={store.setStefaneQ1Variable}
+              onSaveQ2Fixed={store.setStefaneQ2Fixed}
+              onSaveQ2Variable={store.setStefaneQ2Variable}
             />
           </div>
         </div>
@@ -226,7 +236,7 @@ export default function Home() {
         {/* Charts */}
         <div
           className="rounded-2xl p-4 mb-4"
-          style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)" }}
+          style={{ background: "rgba(10,10,20,0.6)", border: "1px solid rgba(255,255,255,0.07)", backdropFilter: "blur(12px)" }}
         >
           <div className="flex items-center justify-between mb-4">
             <p className="text-sm font-semibold text-white">Análise de Gastos</p>
@@ -277,7 +287,7 @@ export default function Home() {
         {/* Expense list */}
         <div
           className="rounded-2xl p-4"
-          style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)" }}
+          style={{ background: "rgba(10,10,20,0.6)", border: "1px solid rgba(255,255,255,0.07)", backdropFilter: "blur(12px)" }}
         >
           <div className="flex items-center justify-between mb-4">
             <p className="text-sm font-semibold text-white">Lançamentos</p>
